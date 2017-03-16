@@ -1,59 +1,159 @@
 <?php
-$app = $_REQUEST['app'];
-$iphone4Mask = $_REQUEST['iphone4-mask'] ? true : false;
+ini_set('memory_limit', '4095M');
 
+$app = $_REQUEST['app'];
+$mockup = $_REQUEST['mockup'];
+
+function shouldIgnore($input){
+  return ($input == '.' || $input == '..' || $input == '.DS_Store' || $input == '_masks' || $input == '_output' || $input == '.git' || $input == '.gitiginore' || $input == 'create.php');
+}
+
+if(!$app || !$mockup){
+?>
+
+<form name="form" action="./create.php" method="get">
+  <select name="app">
+    <option value="">SELECIONE</option>
+
+<?
+  $apps = scandir(".");
+  foreach($apps as $app){
+    if(shouldIgnore($app)){ continue; }
+    echo '<option value="' . $app. '">' . $app. '</option>';
+  }
+?>
+
+  </select>
+
+  <br />Mockup?
+  <label><input type="radio" name="mockup" value="false" onclick="this.form.submit()"> não</label>
+  <label><input type="radio" name="mockup" value="true" onclick="this.form.submit()"> sim</label>
+
+</form>
+
+<?
+  die();
+}
+?>
+
+<br /><br />
+<a href="create.php">VOLTAR</a>
+
+
+<?php
+$hasMockup = ($mockup == 'true') ? true : false;
 set_time_limit(0);
 $langsDir = $app.'/';
 $masksDir = $langsDir.'_masks/';
 $outputDir = $langsDir.'_output/';
 $langs = scandir($langsDir);
 
-function shouldIgnore($input){
-  return ($input == '.' || $input == '..' || $input == '.DS_Store' || $input == '_masks' || $input == '_output');
-}
+$backgroundImage = @imagecreatefrompng($masksDir.'background.png');
+$mockupImageIphone = @imagecreatefrompng($masksDir.'Mockup-iphone.png');
+$mockupImagePixel = @imagecreatefrompng($masksDir.'Mockup-pixel.png');
 
-function makeIt($pressetName, $width, $height, $aspect, $lang, $shoot){
-    global $masksDir, $langsDir, $outputDir, $bannerColor, $iphone4Mask;
-    $out = imagecreatetruecolor($width, $height);
-    $mask = imagecreatefrompng($masksDir.$lang.'/'.$shoot);
-    $screen = imagecreatefrompng($langsDir.'/'.$lang.'/'.$shoot);
-
-    if($pressetName == '3.5'){
-      if($iphone4Mask){
-        imagecopyresampled($out, $screen, 66, 58, 0, 0, 510, 908, 1242, 2208);
-      }
-      else{
-        imagecopyresampled($out, $screen, 0, 0, 0, 0, 640, 1050, 1242, 2208);
-      }
-      $frame = imagecreatefrompng($masksDir.'_3.5.png');
-      if($iphone4Mask){
-        imagecopyresampled($out, $frame, 0, 0, 0, 0, $width, $height, $width, $height);
-      }
-      imagecopyresampled($out, $mask, 0, 0, 0, 0, $width, $height+50, 1242, 2208);
-    }
-    else if($aspect == '4:3'){
-      imagecopyresampled($out, $screen, 0, 0, $width*0.03, 0, $width, $height, 2048*0.95, 2732*0.91); 
-      
-    }
-    else{
-      imagecopyresampled($out, $screen, 0, 0, 2732/16*9*0.17, 0, $width, $height, 2732/16*9, 2732*0.93);
-      imagecopyresampled($out, $mask, 0, 0, 0, 0, $width, $height, 1242, 2208);     
-    }
-    
-    imagepng($out, $outputDir.$pressetName.'-'.$lang.'-'.$shoot);
-}
-
+ 
 foreach($langs as $lang){
   if(shouldIgnore($lang)){ continue; }
 
   $shoots = scandir($langsDir.'/'.$lang);
+  $i = 1;
   foreach($shoots as $shoot){
     if(shouldIgnore($shoot)){ continue; }
 
-    makeIt('12.9', 2048, 2732, '4:3', $lang, $shoot);
-    makeIt('5.5', 1242, 2208, '16:9', $lang, $shoot);
-    //makeIt('4.7', 750, 1334, '16:9', $lang, $shoot);
-    //makeIt('4.0', 640, 1136, '16:9', $lang, $shoot);
-    //makeIt('3.5', 640, 960, '3:2', $lang, $shoot);
+    makeIt('12.9', 2048, 2732, '4:3', $lang, $shoot, $i);
+    makeIt('5.5', 1242, 2208, '16:9', $lang, $shoot, $i);
+    //makeIt('4.7', 750, 1334, '16:9', $lang, $shoot, $i);
+    //makeIt('4.0', 640, 1136, '16:9', $lang, $shoot, $i);
+    //makeIt('3.5', 640, 960, '3:2', $lang, $shoot, $i);
+    $i++;
   }
 }
+
+
+function makeIt($pressetName, $width, $height, $aspect, $lang, $shoot, $i){
+    global $masksDir, $langsDir, $outputDir, $bannerColor, $hasMockup, $backgroundImage, $mockupImageIphone, $mockupImagePixel;
+    $out = imagecreatetruecolor($width, $height);
+    $mask = imagecreatefrompng($masksDir.$lang.'/'.$shoot);
+    $screen = imagecreatefrompng($langsDir.'/'.$lang.'/'.$shoot);
+
+    // tablet
+    if($aspect == '4:3'){
+      $newX = 2732/16*9*0.17;
+      $newWidth = 2732/16*9;
+      $newHeight = 2732*0.93;
+      if(!$hasMockup){
+        imagecopyresampled($out, $screen, 0, 0, $width*0.03, 0, $width, $height, 2048*0.95, $height*0.91);
+        imagepng($out, $outputDir.$pressetName.'-'.$lang.'-'.$shoot);
+        imagedestroy($out); 
+      }
+      elseif($backgroundImage && $mockupImageIphone && $mockupImagePixel){
+
+        // background
+        $backgroundOriginX = ($width * $i - $width) * (-1);
+        imagecopyresampled($out, $backgroundImage, $backgroundOriginX, 0, 0, 0, $width*4, $height, 8192, $height);
+
+        // screen
+        imagecopyresampled($out, $screen, 510, 910, $newX, 0, $width * 0.50, $height * 0.65, $newWidth, $newHeight);
+
+        // iphone
+        $outIphone = imagecreatetruecolor($width, $height);
+        imagecopy($outIphone, $out, 0, 0, 0, 0, $width, $height);
+        imagecopyresampled($outIphone, $mockupImageIphone, 0, 0, 0, 0, $width, $height, $width, $height);
+        imagecopyresampled($outIphone, $mask, 0, 0, 0, 0, $width, $height*1.2, 1242, 2208);
+        imagepng($outIphone, $outputDir.$pressetName.'-'.$lang.'-iphone-'.$shoot);
+        imagedestroy($outIphone);
+
+        // pixel
+        $outPixel = imagecreatetruecolor($width, $height);
+        imagecopy($outPixel, $out, 0, 0, 0, 0, $width, $height);
+        imagecopyresampled($outPixel, $mockupImagePixel, 0, 0, 0, 0, $width, $height, $width, $height);
+        imagecopyresampled($outPixel, $mask, 0, 0, 0, 0, $width, $height*1.2, 1242, 2208);
+        imagepng($outPixel, $outputDir.$pressetName.'-'.$lang.'-pixel-'.$shoot);
+        imagedestroy($outPixel);
+
+        imagedestroy($out); 
+      }
+    }
+
+    // phone
+    else{
+      $newX = 2732/16*9*0.17;
+      $newWidth = 2732/16*9;
+      $newHeight = 2732*0.93;
+      if(!$hasMockup){
+        imagecopyresampled($out, $screen, 0, 0, $newX, 0, $width, $height, $newWidth, $newHeight);
+        imagecopyresampled($out, $mask, 0, 0, 0, 0, $width, $height, $width, 2208);  
+        imagepng($out, $outputDir.$pressetName.'-'.$lang.'-'.$platform.$shoot);
+        imagedestroy($out); 
+      }
+      elseif($backgroundImage && $mockupImageIphone && $mockupImagePixel){
+
+        // background
+        $backgroundOriginX = ($width * $i - $width) * (-1);
+        imagecopyresampled($out, $backgroundImage, $backgroundOriginX, 0, 0, 0, $width*4, $height, 8192, $height);
+
+        // screen
+        imagecopyresampled($out, $screen, 180, 640, $newX, 0, $width * 0.7, $height * 0.7, $newWidth, $newHeight);
+
+        // iphone
+        $outIphone = imagecreatetruecolor($width, $height);
+        imagecopy($outIphone, $out, 0, 0, 0, 0, $width, $height);
+        imagecopyresampled($outIphone, $mockupImageIphone, 0, 0, $newX, 170, $width, $height, $newWidth, $newHeight);
+        imagecopyresampled($outIphone, $mask, 0, 0, 0, 0, $width, $height, 1242, 2208);
+        imagepng($outIphone, $outputDir.$pressetName.'-'.$lang.'-iphone-'.$shoot);
+        imagedestroy($outIphone);
+
+        // pixel
+        $outPixel = imagecreatetruecolor($width, $height);
+        imagecopy($outPixel, $out, 0, 0, 0, 0, $width, $height);
+        imagecopyresampled($outPixel, $mockupImagePixel, 0, 0, $newX, 170, $width, $height, $newWidth, $newHeight);
+        imagecopyresampled($outPixel, $mask, 0, 0, 0, 0, $width, $height, 1242, 2208);
+        imagepng($outPixel, $outputDir.$pressetName.'-'.$lang.'-pixel-'.$shoot);
+        imagedestroy($outPixel);
+
+        imagedestroy($out); 
+      } 
+    }
+}
+?>
