@@ -4,6 +4,10 @@ ini_set('memory_limit', '4095M');
 $app = $_REQUEST['app'];
 $mockup = $_REQUEST['mockup'];
 
+function _log($msg){
+  echo '<br />' . $msg;
+}
+
 function shouldIgnore($input){
   return ($input == '.' || $input == '..' || $input == '.DS_Store' || $input == '_masks' || $input == '_output' || $input == '.git' || $input == '.gitiginore' || $input == 'create.php');
 }
@@ -51,6 +55,7 @@ $langs = scandir($langsDir);
 $backgroundImage = @imagecreatefrompng($masksDir.'background.png');
 $mockupImageIphone = @imagecreatefrompng($masksDir.'Mockup-iphone.png');
 $mockupImagePixel = @imagecreatefrompng($masksDir.'Mockup-pixel.png');
+_log("verifying mockup files background:".$backgroundImage." iPhone:".$mockupImageIphone." pixel:".$mockupImagePixel);
 
  
 foreach($langs as $lang){
@@ -72,10 +77,12 @@ foreach($langs as $lang){
 
 
 function makeIt($pressetName, $width, $height, $aspect, $lang, $shoot, $i){
+    _log("making ".$pressetName);
     global $masksDir, $langsDir, $outputDir, $bannerColor, $hasMockup, $backgroundImage, $mockupImageIphone, $mockupImagePixel;
     $out = imagecreatetruecolor($width, $height);
     $mask = imagecreatefrompng($masksDir.$lang.'/'.$shoot);
     $screen = imagecreatefrompng($langsDir.'/'.$lang.'/'.$shoot);
+    _log("opening files mask:" . $mask . " screen:".$screen);
 
     // tablet
     if($aspect == '4:3'){
@@ -109,7 +116,8 @@ function makeIt($pressetName, $width, $height, $aspect, $lang, $shoot, $i){
         imagecopy($outPixel, $out, 0, 0, 0, 0, $width, $height);
         imagecopyresampled($outPixel, $mockupImagePixel, 0, 0, 0, 0, $width, $height, $width, $height);
         imagecopyresampled($outPixel, $mask, 0, 0, 0, 0, $width, $height*1.2, 1242, 2208);
-        imagepng($outPixel, $outputDir.$pressetName.'-'.$lang.'-pixel-'.$shoot);
+        $saved = imagepng($outPixel, $outputDir.$pressetName.'-'.$lang.'-pixel-'.$shoot);
+        _log("saving pixel:".$saved);
         imagedestroy($outPixel);
 
         imagedestroy($out); 
@@ -122,13 +130,14 @@ function makeIt($pressetName, $width, $height, $aspect, $lang, $shoot, $i){
       $newWidth = 2732/16*9;
       $newHeight = 2732*0.93;
       if(!$hasMockup){
+        _log("creating without mockup");
         imagecopyresampled($out, $screen, 0, 0, $newX, 0, $width, $height, $newWidth, $newHeight);
         imagecopyresampled($out, $mask, 0, 0, 0, 0, $width, $height, $width, 2208);  
         imagepng($out, $outputDir.$pressetName.'-'.$lang.'-'.$platform.$shoot);
         imagedestroy($out); 
       }
       elseif($backgroundImage && $mockupImageIphone && $mockupImagePixel){
-
+        _log("creating with mockup");
         // background
         $backgroundOriginX = ($width * $i - $width) * (-1);
         imagecopyresampled($out, $backgroundImage, $backgroundOriginX, 0, 0, 0, $width*4, $height, 8192, $height);
@@ -149,7 +158,8 @@ function makeIt($pressetName, $width, $height, $aspect, $lang, $shoot, $i){
         imagecopy($outPixel, $out, 0, 0, 0, 0, $width, $height);
         imagecopyresampled($outPixel, $mockupImagePixel, 0, 0, $newX, 170, $width, $height, $newWidth, $newHeight);
         imagecopyresampled($outPixel, $mask, 0, 0, 0, 0, $width, $height, 1242, 2208);
-        imagepng($outPixel, $outputDir.$pressetName.'-'.$lang.'-pixel-'.$shoot);
+        $saved = imagepng($outPixel, $outputDir.$pressetName.'-'.$lang.'-pixel-'.$shoot);
+        _log("saving pixel:".$saved);
         imagedestroy($outPixel);
 
         imagedestroy($out); 
