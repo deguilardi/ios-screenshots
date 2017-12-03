@@ -9,13 +9,13 @@ function _log($msg){
 }
 
 function shouldIgnore($input){
-  return ($input == '.' || $input == '..' || $input == '.DS_Store' || $input == '_masks' || $input == '_output' || $input == '.git' || $input == '.gitiginore' || $input == 'create.php');
+  return ($input == '.' || $input == '..' || $input == '.DS_Store' || $input == '_masks' || $input == '_output' || $input == '.git' || $input == '.gitignore' || $input == 'index.php' || $input == '_support' );
 }
 
 if(!$app || !$mockup){
 ?>
 
-<form name="form" action="./create.php" method="get">
+<form name="form" action="./index.php" method="get">
   <select name="app">
     <option value="">SELECIONE</option>
 
@@ -41,7 +41,7 @@ if(!$app || !$mockup){
 ?>
 
 <br /><br />
-<a href="create.php">VOLTAR</a>
+<a href="index.php">VOLTAR</a>
 
 
 <?php
@@ -53,8 +53,9 @@ $outputDir = $langsDir.'_output/';
 $langs = scandir($langsDir);
 
 $backgroundImage = @imagecreatefrompng($masksDir.'background.png');
-$mockupImageIphone = @imagecreatefrompng($masksDir.'Mockup-iphone.png');
-$mockupImagePixel = @imagecreatefrompng($masksDir.'Mockup-pixel.png');
+$mockupImageIphone = @imagecreatefrompng('./_support/Mockup-iphone.png');
+$mockupImageIpad = @imagecreatefrompng('./_support/Mockup-ipad.png');
+$mockupImagePixel = @imagecreatefrompng('./_support/Mockup-pixel.png');
 _log("verifying mockup files background:".$backgroundImage." iPhone:".$mockupImageIphone." pixel:".$mockupImagePixel);
 
  
@@ -79,7 +80,7 @@ foreach($langs as $lang){
 
 function makeIt($pressetName, $width, $height, $aspect, $lang, $shoot, $i){
     _log("making ".$pressetName);
-    global $masksDir, $langsDir, $outputDir, $bannerColor, $hasMockup, $backgroundImage, $mockupImageIphone, $mockupImagePixel;
+    global $masksDir, $langsDir, $outputDir, $bannerColor, $hasMockup, $backgroundImage, $mockupImageIphone, $mockupImagePixel, $mockupImageIpad;
     $out = imagecreatetruecolor($width, $height);
     $mask = imagecreatefrompng($masksDir.$lang.'/'.$shoot);
     $screen = imagecreatefrompng($langsDir.'/'.$lang.'/'.$shoot);
@@ -101,20 +102,19 @@ function makeIt($pressetName, $width, $height, $aspect, $lang, $shoot, $i){
         $backgroundOriginX = ($width * $i - $width) * (-1);
         imagecopyresampled($out, $backgroundImage, $backgroundOriginX, 0, 0, 0, $width*4, $height, 8192, $height);
 
-        // screen
-        imagecopyresampled($out, $screen, 510, 910, $newX, 0, $width * 0.50, $height * 0.65, $newWidth, $newHeight);
-
-        // iphone
-        $outIphone = imagecreatetruecolor($width, $height);
-        imagecopy($outIphone, $out, 0, 0, 0, 0, $width, $height);
-        imagecopyresampled($outIphone, $mockupImageIphone, 0, 0, 0, 0, $width, $height, $width, $height);
-        imagecopyresampled($outIphone, $mask, 0, 0, 0, 0, $width, $height*1.2, 1242, 2208);
-        imagepng($outIphone, $outputDir.$pressetName.'-'.$lang.'-iphone-'.$shoot);
-        imagedestroy($outIphone);
+        // ipad
+        $outIpad = imagecreatetruecolor($width, $height);
+        imagecopy($outIpad, $out, 0, 0, 0, 0, $width, $height);
+        imagecopyresampled($outIpad, $screen, 307, 860, 100, 0, 1433, 1910, 1880, $newHeight );
+        imagecopyresampled($outIpad, $mockupImageIpad, 0, 0, 0, 0, $width, $height, $width, $height);
+        imagecopyresampled($outIpad, $mask, 0, 0, 0, 0, $width, $height*1.2, 1242, 2208);
+        imagepng($outIpad, $outputDir.$pressetName.'-'.$lang.'-ipad-'.$shoot);
+        imagedestroy($outIpad);
 
         // pixel
         $outPixel = imagecreatetruecolor($width, $height);
         imagecopy($outPixel, $out, 0, 0, 0, 0, $width, $height);
+        imagecopyresampled($outPixel, $screen, 510, 910, $newX, 0, $width * 0.50, $height * 0.65, $newWidth, $newHeight);
         imagecopyresampled($outPixel, $mockupImagePixel, 0, 0, 0, 0, $width, $height, $width, $height);
         imagecopyresampled($outPixel, $mask, 0, 0, 0, 0, $width, $height*1.2, 1242, 2208);
         $saved = imagepng($outPixel, $outputDir.$pressetName.'-'.$lang.'-pixel-'.$shoot);
