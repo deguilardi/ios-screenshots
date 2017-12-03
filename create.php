@@ -68,6 +68,7 @@ foreach($langs as $lang){
 
     makeIt('12.9', 2048, 2732, '4:3', $lang, $shoot, $i);
     makeIt('5.5', 1242, 2208, '16:9', $lang, $shoot, $i);
+    //makeIt('5.8', 1242, 2208, '16:9', $lang, $shoot, $i);
     //makeIt('4.7', 750, 1334, '16:9', $lang, $shoot, $i);
     //makeIt('4.0', 640, 1136, '16:9', $lang, $shoot, $i);
     //makeIt('3.5', 640, 960, '3:2', $lang, $shoot, $i);
