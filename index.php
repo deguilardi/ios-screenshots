@@ -126,7 +126,7 @@ function makeIt($pressetName, $width, $height, $aspect, $lang, $shoot, $i){
     }
 
     // phone
-    else{
+    else{_log("pira");
       $newX = 2732/16*9*0.17;
       $newWidth = 2732/16*9;
       $newHeight = 2732*0.93;
