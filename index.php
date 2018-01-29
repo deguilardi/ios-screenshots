@@ -100,7 +100,7 @@ function makeIt($pressetName, $width, $height, $aspect, $lang, $shoot, $i){
 
         // background
         $backgroundOriginX = ($width * $i - $width) * (-1);
-        imagecopyresampled($out, $backgroundImage, $backgroundOriginX, 0, 0, 0, $width*4, $height, 8192, $height);
+        imagecopyresampled($out, $backgroundImage, $backgroundOriginX, 0, 0, 0, $width*5, $height, 10240, $height);
 
         // ipad
         $outIpad = imagecreatetruecolor($width, $height);
@@ -141,7 +141,7 @@ function makeIt($pressetName, $width, $height, $aspect, $lang, $shoot, $i){
         _log("creating with mockup");
         // background
         $backgroundOriginX = ($width * $i - $width) * (-1);
-        imagecopyresampled($out, $backgroundImage, $backgroundOriginX, 0, 0, 0, $width*4, $height, 8192, $height);
+        imagecopyresampled($out, $backgroundImage, $backgroundOriginX, 0, 0, 0, $width*5, $height, 10240, $height);
 
         // screen
         imagecopyresampled($out, $screen, 180, 640, $newX, 0, $width * 0.7, $height * 0.7, $newWidth, $newHeight);
