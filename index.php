@@ -67,14 +67,14 @@ foreach($langs as $lang){
   foreach($shoots as $shoot){
     if(shouldIgnore($shoot)){ continue; }
 
-    makeIt('12.9', 2048, 2732, '4:3', $lang, $shoot, $i);
+    //makeIt('12.9', 2048, 2732, '4:3', $lang, $shoot, $i);
     makeIt('5.5', 1242, 2208, '16:9', $lang, $shoot, $i);
     //makeIt('5.8', 1242, 2208, '16:9', $lang, $shoot, $i);
     //makeIt('4.7', 750, 1334, '16:9', $lang, $shoot, $i);
     //makeIt('4.0', 640, 1136, '16:9', $lang, $shoot, $i);
     //makeIt('3.5', 640, 960, '3:2', $lang, $shoot, $i);
     $i++;
-  }
+  }die();
 }
 
 
@@ -100,7 +100,7 @@ function makeIt($pressetName, $width, $height, $aspect, $lang, $shoot, $i){
 
         // background
         $backgroundOriginX = ($width * $i - $width) * (-1);
-        imagecopyresampled($out, $backgroundImage, $backgroundOriginX, 0, 0, 0, $width*4, $height, 8192, $height);
+        imagecopyresampled($out, $backgroundImage, $backgroundOriginX, 0, 0, 0, $width*5, $height, 10240, $height);
 
         // ipad
         $outIpad = imagecreatetruecolor($width, $height);
@@ -126,7 +126,7 @@ function makeIt($pressetName, $width, $height, $aspect, $lang, $shoot, $i){
     }
 
     // phone
-    else{_log("pira");
+    else{
       $newX = 2732/16*9*0.17;
       $newWidth = 2732/16*9;
       $newHeight = 2732*0.93;
@@ -141,7 +141,7 @@ function makeIt($pressetName, $width, $height, $aspect, $lang, $shoot, $i){
         _log("creating with mockup");
         // background
         $backgroundOriginX = ($width * $i - $width) * (-1);
-        imagecopyresampled($out, $backgroundImage, $backgroundOriginX, 0, 0, 0, $width*4, $height, 8192, $height);
+        imagecopyresampled($out, $backgroundImage, $backgroundOriginX, 0, 0, 0, $width*5, $height, 10240, $height);
 
         // screen
         imagecopyresampled($out, $screen, 180, 640, $newX, 0, $width * 0.7, $height * 0.7, $newWidth, $newHeight);
